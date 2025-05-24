@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Notebook Graph</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
+  <style>
+    body { margin: 0; background: black; }
+    #cy {
+      width: 100vw;
+      height: 100vh;
+      /* border: 1px solid #ddd; */
+    }
+  </style>
+</head>
+<body>
+  <div id="cy"></div>
+
+  <script>
+    // Injected metadata, nodes, edges
+    const metadata = {"notebooks/image_utils/colorspace_conversion.ipynb": {"title": "Colorspace Conversion", "tags": ["image_utils"], "summary": "This notebook explains color space transformations.", "related": [], "parent": "Time Series"}, "notebooks/paint_series/palette_analysis.ipynb": {"title": "Palette Analysis", "tags": ["paint_series"], "summary": "test", "related": [], "parent": "NLP"}};
+    const nodes = [{"data": {"id": "notebooks/image_utils/colorspace_conversion.ipynb", "label": "Colorspace Conversion", "parent": "Time Series", "summary": "This notebook explains color space transformations."}, "classes": "notebook"}, {"data": {"id": "notebooks/paint_series/palette_analysis.ipynb", "label": "Palette Analysis", "parent": "NLP", "summary": "test"}, "classes": "notebook"}];
+    const edges = [];
+
+    // Assign colors for each unique parent
+    const parents = [...new Set(Object.values(metadata).map(m => m.parent))].filter(p => p);
+    const colors = ["#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b"];
+
+    const parentColorMap = {};
+    parents.forEach((p, i) => parentColorMap[p] = colors[i % colors.length]);
+
+    const cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements: [...nodes, ...edges],
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'label': 'data(label)',
+            'text-valign': 'center',
+            'color': '#fff',
+            'background-color': ele => parentColorMap[ele.data('parent')] || '#4a148c',
+            'border-width': 2,
+            'border-color': '#ddd',
+            'shape': 'roundrectangle',
+            'width': 'label',
+            'padding': 10,
+            'font-size': 12,
+            'text-wrap': 'wrap',
+            'text-max-width': 120,
+          }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'width': 2,
+            'line-color': '#666',
+            'target-arrow-color': '#666',
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier'
+          }
+        }
+      ],
+      layout: {
+        name: 'cose',
+        animate: true
+      }
+    });
+
+    // Tooltip showing summary on hover
+    cy.nodes().forEach(node => {
+      const summary = node.data('summary');
+      if(summary) {
+        node.qtip({
+          content: summary,
+          position: {
+            my: 'top center',
+            at: 'bottom center'
+          },
+          style: {
+            classes: 'qtip-dark qtip-rounded',
+            tip: {
+              corner: true,
+              width: 10,
+              height: 8
+            }
+          }
+        });
+      }
+    });
+
+    // On node click, open the notebook link in new tab
+    cy.on('tap', 'node', evt => {
+      const url = evt.target.id();
+      window.open(url, '_blank');
+    });
+  </script>
+
+  <!-- Include qTip2 for tooltips -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.js"></script>
+</body>
+</html>

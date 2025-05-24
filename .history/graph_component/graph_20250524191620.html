@@ -11,7 +11,6 @@
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/cytoscape-fcose@2.4.0/cytoscape-fcose.min.js"></script>
 </head>
 <body>
   <div id="cy"></div>
@@ -39,9 +38,6 @@
         }
       };
     });
-
-    // Register fcose layout extension
-    cytoscape.use(fcose);
 
     const cy = cytoscape({
       container: document.getElementById('cy'),
@@ -82,18 +78,12 @@
         name: 'fcose',
         animate: true,
         padding: 50,
-        fit: true,
-        nodeRepulsion: 4500,
-        idealEdgeLength: 100,
-        nestingFactor: 0.1,
-        gravity: 0.25,
-        numIter: 2500,
-        tile: true,
-        randomize: true,
-        gravityRangeCompound: 1.5,
-        gravityCompound: 1.0,
-        gravityRange: 3.8
-        // avoidOverlap not supported by fcose, spacing is automatic
+        nodeRepulsion: 12000,
+        idealEdgeLength: 120,
+        edgeElasticity: 0.1,
+        gravity: 0.3,
+        numIter: 2000,
+        avoidOverlap: true
       }
     });
 

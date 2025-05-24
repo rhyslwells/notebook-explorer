@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Notebook Graph</title>
+  <style>
+    body { margin: 0; background: black; }
+    #cy {
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+
+  <!-- Load jQuery and qTip2 (CSS + JS) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.js"></script>
+
+  <!-- Load Cytoscape -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
+  <!-- Load Cytoscape-qTip extension -->
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape-qtip@2.7.0/cytoscape-qtip.min.js"></script>
+</head>
+<body>
+  <div id="cy"></div>
+
+  <script>
+    // These will be replaced by your inject.py script
+    const metadata = /*__METADATA__*/;
+    const nodes = /*__NODES__*/;
+    const edges = /*__EDGES__*/;
+
+    console.log("Metadata:", metadata);
+    console.log("Nodes:", nodes);
+    console.log("Edges:", edges);
+
+    // Map parents to colors
+    const parents = [...new Set(Object.values(metadata).map(m => m.parent))].filter(p => p);
+    const colors = ["#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b"];
+    const parentColorMap = {};
+    parents.forEach((p, i) => parentColorMap[p] = colors[i % colors.length]);
+
+    // Initialize Cytoscape
+    const cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements: [...nodes, ...edges],
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'label': 'data(label)',
+            'text-valign': 'center',
+            'color': '#fff',
+            'background-color': ele => parentColorMap[ele.data('parent')] || '#4a148c',
+            'border-width': 2,
+            'border-color': '#ddd',
+            'shape': 'roundrectangle',
+            'width': 'label',
+            'padding': 10,
+            'font-size': 12,
+            'text-wrap': 'wrap',
+            'text-max-width': 120,
+          }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'width': 2,
+            'line-color': '#666',
+            'target-arrow-color': '#666',
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier'
+          }
+        }
+      ],
+      layout: {
+        name: 'cose',
+        animate: true,
+        fit: true,
+        padding: 30,
+        nodeRepulsion: 12000,      // increased repulsion
+        idealEdgeLength: 200,      // increased edge length
+        nodeOverlap: 20,           // more spacing
+        gravity: 0.15,
+        numIter: 1500,
+        tile: true,
+        avoidOverlap: true,
+      }
+    });
+
+    cy.ready(() => {
+      cy.nodes().forEach(node => {
+        const summary = node.data('summary');
+        if (summary) {
+          node.qtip({
+            content: summary,
+            show: { event: 'mouseover' },
+            hide: { event: 'mouseout' },
+            position: {
+              my: 'top center',
+              at: 'bottom center'
+            },
+            style: {
+              classes: 'qtip-dark qtip-rounded',
+              tip: { corner: true, width: 10, height: 8 }
+            }
+          });
+        }
+      });
+
+      // Run layout explicitly to reapply with updated parameters
+      const layout = cy.layout({
+        name: 'cose',
+        animate: true,
+        fit: true,
+        padding: 30,
+        nodeRepulsion: 12000,
+        idealEdgeLength: 200,
+        nodeOverlap: 20,
+        gravity: 0.15,
+        numIter: 1500,
+        tile: true,
+        avoidOverlap: true,
+      });
+      layout.run();
+    });
+
+    // On node click, open GitHub URL (adjust base URL accordingly)
+    cy.on('tap', 'node', evt => {
+      const path = evt.target.id();
+      const baseUrl = 'https://github.com/rhyslwells/notebook-explorer/blob/main/'; // Update as needed
+      window.open(baseUrl + encodeURIComponent(path), '_blank');
+    });
+  </script>
+</body>
+</html>

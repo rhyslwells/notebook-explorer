@@ -8,41 +8,37 @@
     #cy {
       width: 100vw;
       height: 100vh;
+      display: block;
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/cytoscape-fcose@2.4.0/cytoscape-fcose.min.js"></script>
+
+  <!-- Cytoscape core (must come first) -->
+  <script src="https://unpkg.com/cytoscape@3.24.0/dist/cytoscape.min.js"></script>
+
+  <!-- cose-bilkent plugin must be loaded *after* Cytoscape -->
+  <script src="https://unpkg.com/cytoscape-cose-bilkent/cytoscape-cose-bilkent.js"></script>
+
+  <script>
+    // Register the layout with Cytoscape
+    cytoscape.use(window.coseBilkent);
+  </script>
 </head>
 <body>
   <div id="cy"></div>
 
   <script>
-    // These placeholders will be replaced by app.py with actual JSON strings
+    // Injected data from Python
     const metadata = /*__METADATA__*/;
-    const rawNodes = /*__NODES__*/;
+    const nodes = /*__NODES__*/;
     const edges = /*__EDGES__*/;
 
-    // Extract unique parents and assign colors
-    const parents = [...new Set(Object.values(metadata).map(m => m.parent))].filter(p => p);
+    // Parent color mapping
+    const parents = [...new Set(Object.values(metadata).map(m => m.parent))].filter(Boolean);
     const colors = ["#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b"];
     const parentColorMap = {};
     parents.forEach((p, i) => parentColorMap[p] = colors[i % colors.length]);
 
-    // Add 'parent' attribute to each node from metadata
-    const nodes = rawNodes.map(n => {
-      const path = n.data.id;
-      const parent = metadata[path]?.parent || null;
-      return {
-        data: {
-          ...n.data,
-          parent: parent
-        }
-      };
-    });
-
-    // Register fcose layout extension
-    cytoscape.use(fcose);
-
+    // Create the Cytoscape instance
     const cy = cytoscape({
       container: document.getElementById('cy'),
       elements: [...nodes, ...edges],
@@ -53,18 +49,16 @@
             'label': 'data(label)',
             'text-valign': 'center',
             'color': '#fff',
-            'background-color': ele => {
-              const parent = ele.data('parent');
-              return parentColorMap[parent] || '#4a148c';  // fallback purple if no parent
-            },
+            'background-color': ele => parentColorMap[ele.data('parent')] || '#4a148c',
             'border-width': 2,
             'border-color': '#ddd',
             'shape': 'roundrectangle',
-            'width': 'label',
             'padding': 10,
             'font-size': 12,
             'text-wrap': 'wrap',
-            'text-max-width': 120
+            'text-max-width': 120,
+            'width': 'label',
+            'height': 'label'
           }
         },
         {
@@ -79,25 +73,20 @@
         }
       ],
       layout: {
-        name: 'fcose',
-        animate: true,
-        padding: 50,
+        name: 'cose-bilkent',
+        animate: 'end',
         fit: true,
-        nodeRepulsion: 4500,
-        idealEdgeLength: 100,
+        padding: 50,
+        nodeDimensionsIncludeLabels: true,
+        nodeRepulsion: 450000,
+        edgeElasticity: 0.45,
         nestingFactor: 0.1,
         gravity: 0.25,
-        numIter: 2500,
-        tile: true,
-        randomize: true,
-        gravityRangeCompound: 1.5,
-        gravityCompound: 1.0,
-        gravityRange: 3.8
-        // avoidOverlap not supported by fcose, spacing is automatic
+        numIter: 2500
       }
     });
 
-    // Open GitHub notebook page on node click
+    // Click to open GitHub link
     cy.on('tap', 'node', evt => {
       const path = evt.target.id();
       const baseUrl = 'https://github.com/rhyslwells/notebook-explorer/blob/main/';

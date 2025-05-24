@@ -11,41 +11,43 @@
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/cytoscape-fcose@2.4.0/cytoscape-fcose.min.js"></script>
 </head>
 <body>
   <div id="cy"></div>
 
   <script>
-    // These placeholders will be replaced by app.py with actual JSON strings
     const metadata = /*__METADATA__*/;
     const rawNodes = /*__NODES__*/;
     const edges = /*__EDGES__*/;
 
-    // Extract unique parents and assign colors
+    // Extract unique parent categories
     const parents = [...new Set(Object.values(metadata).map(m => m.parent))].filter(p => p);
     const colors = ["#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b"];
     const parentColorMap = {};
     parents.forEach((p, i) => parentColorMap[p] = colors[i % colors.length]);
 
-    // Add 'parent' attribute to each node from metadata
+    // Generate compound parent nodes
+    const parentNodes = parents.map(p => ({
+      data: { id: `parent-${p}`, label: p },
+      selectable: false,
+      grabbable: false
+    }));
+
+    // Assign each node a parent group
     const nodes = rawNodes.map(n => {
       const path = n.data.id;
-      const parent = metadata[path]?.parent || null;
+      const parent = metadata[path]?.parent;
       return {
         data: {
           ...n.data,
-          parent: parent
+          parent: parent ? `parent-${parent}` : undefined
         }
       };
     });
 
-    // Register fcose layout extension
-    cytoscape.use(fcose);
-
     const cy = cytoscape({
       container: document.getElementById('cy'),
-      elements: [...nodes, ...edges],
+      elements: [...parentNodes, ...nodes, ...edges],
       style: [
         {
           selector: 'node',
@@ -54,8 +56,8 @@
             'text-valign': 'center',
             'color': '#fff',
             'background-color': ele => {
-              const parent = ele.data('parent');
-              return parentColorMap[parent] || '#4a148c';  // fallback purple if no parent
+              const parentKey = ele.data('parent')?.replace('parent-', '');
+              return parentColorMap[parentKey] || '#4a148c';
             },
             'border-width': 2,
             'border-color': '#ddd',
@@ -65,6 +67,22 @@
             'font-size': 12,
             'text-wrap': 'wrap',
             'text-max-width': 120
+          }
+        },
+        {
+          selector: 'node[parent]', // Style parent (compound) nodes
+          style: {
+            'background-opacity': 0.05,
+            'label': 'data(label)',
+            'text-valign': 'top',
+            'text-halign': 'center',
+            'font-size': 16,
+            'text-margin-y': -10,
+            'color': '#ccc',
+            'shape': 'roundrectangle',
+            'border-style': 'dashed',
+            'border-width': 1,
+            'border-color': '#666'
           }
         },
         {
@@ -79,29 +97,24 @@
         }
       ],
       layout: {
-        name: 'fcose',
+        name: 'cose',
         animate: true,
         padding: 50,
-        fit: true,
-        nodeRepulsion: 4500,
-        idealEdgeLength: 100,
-        nestingFactor: 0.1,
-        gravity: 0.25,
-        numIter: 2500,
-        tile: true,
-        randomize: true,
-        gravityRangeCompound: 1.5,
-        gravityCompound: 1.0,
-        gravityRange: 3.8
-        // avoidOverlap not supported by fcose, spacing is automatic
+        nodeRepulsion: 12000,
+        idealEdgeLength: 120,
+        edgeElasticity: 0.1,
+        gravity: 0.3,
+        numIter: 2000,
+        avoidOverlap: true
       }
     });
 
-    // Open GitHub notebook page on node click
     cy.on('tap', 'node', evt => {
       const path = evt.target.id();
-      const baseUrl = 'https://github.com/rhyslwells/notebook-explorer/blob/main/';
-      window.open(baseUrl + encodeURIComponent(path), '_blank');
+      if (!path.startsWith('parent-')) {
+        const baseUrl = 'https://github.com/rhyslwells/notebook-explorer/blob/main/';
+        window.open(baseUrl + encodeURIComponent(path), '_blank');
+      }
     });
   </script>
 </body>

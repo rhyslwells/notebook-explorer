@@ -1,0 +1,21 @@
+{
+  "notebooks/image_utils/colorspace_conversion.ipynb": {
+    "title": "Colorspace Conversion",
+    "tags": [
+      "image_utils"
+    ],
+    "summary": "This notebook explains color space transformations.",
+    "related": [],
+    "parent":"Time Series"
+  },
+  "notebooks/paint_series/palette_analysis.ipynb": {
+    "title": "Palette Analysis",
+    "tags": [
+      "paint_series"
+    ],
+    "summary": "test",
+    "related": [],
+        "parent":"NLP"
+
+  }
+}

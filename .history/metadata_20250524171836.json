@@ -1,0 +1,18 @@
+{
+  "notebooks/image_utils/colorspace_conversion.ipynb": {
+    "title": "Colorspace Conversion",
+    "tags": [
+      "image_utils"
+    ],
+    "summary": "test! No summary available.",
+    "related": []
+  },
+  "notebooks/paint_series/palette_analysis.ipynb": {
+    "title": "Palette Analysis",
+    "tags": [
+      "paint_series"
+    ],
+    "summary": "No summary available.",
+    "related": []
+  }
+}

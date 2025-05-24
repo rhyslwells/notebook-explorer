@@ -1,47 +1,33 @@
-<!DOCTYPE html>
-<html>
 <head>
   <meta charset="utf-8" />
   <title>Notebook Graph</title>
   <style>
     body { margin: 0; background: black; }
-    #cy {
-      width: 100vw;
-      height: 100vh;
-    }
+    #cy { width: 100vw; height: 100vh; }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/cytoscape-fcose@2.4.0/cytoscape-fcose.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape-fcose@2.1.1/cytoscape-fcose.min.js"></script>
 </head>
 <body>
   <div id="cy"></div>
-
   <script>
-    // These placeholders will be replaced by app.py with actual JSON strings
     const metadata = /*__METADATA__*/;
     const rawNodes = /*__NODES__*/;
     const edges = /*__EDGES__*/;
 
-    // Extract unique parents and assign colors
+    // Prepare nodes with parent color
     const parents = [...new Set(Object.values(metadata).map(m => m.parent))].filter(p => p);
     const colors = ["#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b"];
     const parentColorMap = {};
     parents.forEach((p, i) => parentColorMap[p] = colors[i % colors.length]);
 
-    // Add 'parent' attribute to each node from metadata
     const nodes = rawNodes.map(n => {
       const path = n.data.id;
       const parent = metadata[path]?.parent || null;
       return {
-        data: {
-          ...n.data,
-          parent: parent
-        }
+        data: { ...n.data, parent: parent }
       };
     });
-
-    // Register fcose layout extension
-    cytoscape.use(fcose);
 
     const cy = cytoscape({
       container: document.getElementById('cy'),
@@ -53,10 +39,7 @@
             'label': 'data(label)',
             'text-valign': 'center',
             'color': '#fff',
-            'background-color': ele => {
-              const parent = ele.data('parent');
-              return parentColorMap[parent] || '#4a148c';  // fallback purple if no parent
-            },
+            'background-color': ele => parentColorMap[ele.data('parent')] || '#4a148c',
             'border-width': 2,
             'border-color': '#ddd',
             'shape': 'roundrectangle',
@@ -93,11 +76,9 @@
         gravityRangeCompound: 1.5,
         gravityCompound: 1.0,
         gravityRange: 3.8
-        // avoidOverlap not supported by fcose, spacing is automatic
       }
     });
 
-    // Open GitHub notebook page on node click
     cy.on('tap', 'node', evt => {
       const path = evt.target.id();
       const baseUrl = 'https://github.com/rhyslwells/notebook-explorer/blob/main/';
@@ -105,4 +86,3 @@
     });
   </script>
 </body>
-</html>

@@ -58,7 +58,7 @@ for parent, notebooks in grouped_sorted:
             
             local_path = os.path.join("notebooks", path)
             html = render_notebook_html(local_path)
-            components.html(html, height=50, scrolling=False)
+            components.html(html, height=50, scrolling=True)
 
             github_url = f"{GITHUB_BASE_URL}/{path}"
             colab_url = f"https://colab.research.google.com/github/rhyslwells/notebook-explorer/blob/main/{path}"

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Notebook Graph</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/webcola/3.3.8/cola.min.js"></script>
+  <style>
+    body {
+      margin: 0; 
+      background-color: #000;
+      color: #eee;
+      font-family: Arial, sans-serif;
+    }
+    #cy {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .legend {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255,255,255,0.1);
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      max-width: 250px;
+      z-index: 999;
+    }
+    .legend-item {
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+    }
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="cy"></div>
+  <div class="legend" id="legend"></div>
+  <script>
+    // Replace this with your injected data:
+    var nodes = /*__NODES__*/;
+    var edges = /*__EDGES__*/;
+
+    // Extract unique parents and assign colors from a spectrum
+    const parents = [...new Set(nodes.map(n => n.data.parent).filter(p => p))].sort();
+
+    // Generate colors from a qualitative color scheme (e.g. Tableau 10)
+    const colorPalette = [
+      "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+      "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
+    ];
+
+    // Map parent to color
+    const parentColorMap = {};
+    parents.forEach((p, i) => {
+      parentColorMap[p] = colorPalette[i % colorPalette.length];
+    });
+
+    // Add color and tooltip data to nodes
+    nodes.forEach(node => {
+      const p = node.data.parent;
+      node.classes = 'notebook';
+      node.data.color = p ? parentColorMap[p] : '#666'; // fallback color
+      node.data.tooltip = node.data.summary || "";
+    });
+
+    var cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements: { nodes: nodes, edges: edges },
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'label': 'data(label)',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'color': '#eee',
+            'background-color': 'data(color)',
+            'border-width': 2,
+            'border-color': '#aaa',
+            'shape': 'roundrectangle',
+            'width': 'label',
+            'padding': '10px 14px',
+            'font-size': 12,
+            'overlay-padding': '6px',
+            'overlay-opacity': 0
+          }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'width': 2,
+            'line-color': '#888',
+            'target-arrow-color': '#888',
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier'
+          }
+        },
+        {
+          selector: 'node:hover',
+          style: {
+            'overlay-opacity': 0.25,
+            'overlay-color': '#fff',
+            'overlay-padding': '8px',
+            'z-index': 10,
+            'font-weight': 'bold',
+            'text-outline-color': '#000',
+            'text-outline-width': 2
+          }
+        }
+      ],
+      layout: {
+        name: 'cola',
+        animate: true,
+        nodeSpacing: 20,
+        flow: { axis: 'y', minSeparation: 40 },
+        randomize: false,
+        edgeLengthVal: 150,
+        maxSimulationTime: 1500
+      }
+    });
+
+    // Show tooltip on hover
+    cy.nodes().forEach(function(node) {
+      node.qtip({
+        content: node.data('tooltip'),
+        position: {
+          my: 'top center',
+          at: 'bottom center'
+        },
+        style: {
+          classes: 'qtip-bootstrap',
+          tip: {
+            width: 8,
+            height: 8
+          }
+        }
+      });
+    });
+
+    // Open notebook link in new tab on click
+    cy.on('tap', 'node', function(evt){
+      var url = evt.target.id();
+      window.open(url, "_blank");
+    });
+
+    // Build legend dynamically
+    const legendDiv = document.getElementById('legend');
+    parents.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'legend-item';
+      const colorBox = document.createElement('div');
+      colorBox.className = 'legend-color';
+      colorBox.style.backgroundColor = parentColorMap[p];
+      item.appendChild(colorBox);
+      const label = document.createElement('span');
+      label.textContent = p;
+      item.appendChild(label);
+      legendDiv.appendChild(item);
+    });
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/qtip2@3.0.3/jquery.qtip.min.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qtip2@3.0.3/jquery.qtip.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Notebook Graph</title>
+  <style>
+    body { margin: 0; background: black; }
+    #cy {
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+
+  <!-- Load Cytoscape and Cola layout -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape-cola@2.5.0/cytoscape-cola.min.js"></script>
+</head>
+<body>
+  <div id="cy"></div>
+
+  <script>
+    // These will be replaced by your inject.py script
+    const metadata = /*__METADATA__*/;
+    const nodes = /*__NODES__*/;
+    const edges = /*__EDGES__*/;
+
+    console.log("Metadata:", metadata);
+    console.log("Nodes:", nodes);
+    console.log("Edges:", edges);
+
+    // Generate unique parent clusters
+    const parents = [...new Set(Object.values(metadata).map(m => m.parent))].filter(p => p);
+    const colors = [
+      "#e6194b", "#3cb44b", "#ffe119", "#0082c8", "#f58231",
+      "#911eb4", "#46f0f0", "#f032e6", "#d2f53c", "#fabebe"
+    ];
+    const parentColorMap = {};
+    parents.forEach((p, i) => parentColorMap[p] = colors[i % colors.length]);
+
+    // Create parent compound nodes
+    const parentNodes = parents.map(p => ({
+      data: { id: `parent-${p}`, label: p },
+      selectable: false,
+      grabbable: false
+    }));
+
+    // Attach each notebook node to its parent compound node
+    const clusteredNodes = nodes.map(n => {
+      const meta = metadata[n.data.id];
+      const parent = meta?.parent;
+      return {
+        data: {
+          ...n.data,
+          label: meta?.title || n.data.id,
+          parent: parent ? `parent-${parent}` : undefined
+        }
+      };
+    });
+
+    // Initialize Cytoscape
+    const cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements: [...parentNodes, ...clusteredNodes, ...edges],
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'label': 'data(label)',
+            'text-valign': 'center',
+            'color': '#fff',
+            'background-color': ele => {
+              const p = ele.data('parent');
+              return p ? parentColorMap[p.replace('parent-', '')] : '#4a148c';
+            },
+            'border-width': 2,
+            'border-color': '#ddd',
+            'shape': 'roundrectangle',
+            'width': 'label',
+            'padding': 10,
+            'font-size': 12,
+            'text-wrap': 'wrap',
+            'text-max-width': 120,
+          }
+        },
+        {
+          selector: 'node[parent]',
+          style: {
+            'background-opacity': 0.05,
+            'border-color': '#777',
+            'border-width': 4,
+            'shape': 'roundrectangle',
+            'padding-left': '50px',
+            'padding-right': '50px',
+            'padding-top': '50px',
+            'padding-bottom': '50px',
+            'label': 'data(label)',
+            'color': '#ccc',
+            'text-valign': 'top',
+            'text-halign': 'center',
+            'font-size': 16
+          }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'width': 2,
+            'line-color': '#666',
+            'target-arrow-color': '#666',
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier'
+          }
+        }
+      ],
+      layout: {
+        name: 'cola',
+        nodeSpacing: 40,
+        edgeLengthVal: 120,
+        animate: true,
+        maxSimulationTime: 4000,
+        avoidOverlap: true,
+        fit: true,
+        padding: 40,
+        nestingFactor: 1.2,
+        flow: { axis: 'y', minSeparation: 100 },
+        randomize: false
+      }
+    });
+
+    // On node click, open GitHub URL (adjust base URL accordingly)
+    cy.on('tap', 'node', evt => {
+      const path = evt.target.id();
+      const baseUrl = 'https://github.com/rhyslwells/notebook-explorer/blob/main/';
+      if (!path.startsWith('parent-')) {
+        window.open(baseUrl + encodeURIComponent(path), '_blank');
+      }
+    });
+  </script>
+</body>
+</html>

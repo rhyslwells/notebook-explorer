@@ -10,39 +10,30 @@
       height: 100vh;
     }
   </style>
+
+  <!-- Load Cytoscape -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/cytoscape-fcose@2.4.0/cytoscape-fcose.min.js"></script>
 </head>
 <body>
   <div id="cy"></div>
 
   <script>
-    // These placeholders will be replaced by app.py with actual JSON strings
+    // These will be replaced by your inject.py script
     const metadata = /*__METADATA__*/;
-    const rawNodes = /*__NODES__*/;
+    const nodes = /*__NODES__*/;
     const edges = /*__EDGES__*/;
 
-    // Extract unique parents and assign colors
+    console.log("Metadata:", metadata);
+    console.log("Nodes:", nodes);
+    console.log("Edges:", edges);
+
+    // Map parents to colors
     const parents = [...new Set(Object.values(metadata).map(m => m.parent))].filter(p => p);
     const colors = ["#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b"];
     const parentColorMap = {};
     parents.forEach((p, i) => parentColorMap[p] = colors[i % colors.length]);
 
-    // Add 'parent' attribute to each node from metadata
-    const nodes = rawNodes.map(n => {
-      const path = n.data.id;
-      const parent = metadata[path]?.parent || null;
-      return {
-        data: {
-          ...n.data,
-          parent: parent
-        }
-      };
-    });
-
-    // Register fcose layout extension
-    cytoscape.use(fcose);
-
+    // Initialize Cytoscape
     const cy = cytoscape({
       container: document.getElementById('cy'),
       elements: [...nodes, ...edges],
@@ -53,10 +44,7 @@
             'label': 'data(label)',
             'text-valign': 'center',
             'color': '#fff',
-            'background-color': ele => {
-              const parent = ele.data('parent');
-              return parentColorMap[parent] || '#4a148c';  // fallback purple if no parent
-            },
+            'background-color': ele => parentColorMap[ele.data('parent')] || '#4a148c',
             'border-width': 2,
             'border-color': '#ddd',
             'shape': 'roundrectangle',
@@ -64,7 +52,7 @@
             'padding': 10,
             'font-size': 12,
             'text-wrap': 'wrap',
-            'text-max-width': 120
+            'text-max-width': 120,
           }
         },
         {
@@ -79,25 +67,21 @@
         }
       ],
       layout: {
-        name: 'fcose',
+        name: 'cose',
         animate: true,
-        padding: 50,
         fit: true,
-        nodeRepulsion: 4500,
-        idealEdgeLength: 100,
-        nestingFactor: 0.1,
-        gravity: 0.25,
-        numIter: 2500,
+        padding: 30,
+        nodeRepulsion: 22000,
+        idealEdgeLength: 200,
+        nodeOverlap: 20,
+        gravity: 0.15,
+        numIter: 1500,
         tile: true,
-        randomize: true,
-        gravityRangeCompound: 1.5,
-        gravityCompound: 1.0,
-        gravityRange: 3.8
-        // avoidOverlap not supported by fcose, spacing is automatic
+        avoidOverlap: true,
       }
     });
 
-    // Open GitHub notebook page on node click
+    // On node click, open GitHub URL (adjust base URL accordingly)
     cy.on('tap', 'node', evt => {
       const path = evt.target.id();
       const baseUrl = 'https://github.com/rhyslwells/notebook-explorer/blob/main/';

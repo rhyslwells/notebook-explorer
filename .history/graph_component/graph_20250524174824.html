@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Notebook Graph</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f8f9fa;
+    }
+
+    #cy {
+      width: 100%;
+      height: 100vh;
+      border-top: 2px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+<div id="cy"></div>
+<script>
+  var cy = cytoscape({
+    container: document.getElementById('cy'),
+
+    elements: {
+      nodes: /*__NODES__*/,
+      edges: /*__EDGES__*/
+    },
+
+    style: [
+      {
+        selector: 'node',
+        style: {
+          'label': 'data(label)',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': '#333',
+          'background-color': '#e3f2fd',
+          'border-width': 2,
+          'border-color': '#64b5f6',
+          'font-size': 12,
+          'shape': 'roundrectangle',
+          'padding': 8,
+          'width': 'label',
+          'text-wrap': 'wrap'
+        }
+      },
+      {
+        selector: 'node:hover',
+        style: {
+          'background-color': '#bbdefb',
+          'cursor': 'pointer',
+          'border-color': '#1976d2'
+        }
+      },
+      {
+        selector: 'edge',
+        style: {
+          'width': 2,
+          'line-color': '#ccc',
+          'target-arrow-color': '#ccc',
+          'target-arrow-shape': 'triangle',
+          'curve-style': 'bezier'
+        }
+      }
+    ],
+
+    layout: {
+      name: 'cose',
+      padding: 20,
+      animate: true,
+      randomize: false,
+      fit: true,
+      nodeRepulsion: 80000,
+      idealEdgeLength: 150,
+      edgeElasticity: 100,
+      gravity: 80,
+      numIter: 1000
+    }
+  });
+
+  cy.on('tap', 'node', function(evt){
+    var url = evt.target.id();
+    window.open("https://github.com/rhyslwells/notebook-explorer/blob/main/" + url, "_blank");
+  });
+</script>
+</body>
+</html>

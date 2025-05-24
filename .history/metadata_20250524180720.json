@@ -1,0 +1,53 @@
+{
+  "notebooks/image_utils/colorspace_conversion.ipynb": {
+    "title": "Colorspace Conversion",
+    "tags": [
+      "image_utils"
+    ],
+    "summary": "This notebook explains color space transformations.",
+    "related": [],
+    "parent":"Time Series"
+  },
+  "notebooks/paint_series/palette_analysis.ipynb": {
+    "title": "Palette Analysis",
+    "tags": [
+      "paint_series"
+    ],
+    "summary": "test",
+    "related": [],
+        "parent":"NLP"
+
+  }
+}
+
+
+const metadata = {
+  "notebooks/image_utils/colorspace_conversion.ipynb": {
+    "title": "Colorspace Conversion",
+    "tags": ["image_utils"],
+    "summary": "This notebook explains color space transformations.",
+    "related": [],
+    "parent": "Time Series"
+  },
+  "notebooks/paint_series/palette_analysis.ipynb": {
+    "title": "Palette Analysis",
+    "tags": ["paint_series"],
+    "summary": "test",
+    "related": [],
+    "parent": "NLP"
+  }
+};
+
+// Convert metadata to nodes
+const nodes = Object.entries(metadata).map(([id, meta]) => ({
+  data: {
+    id: id,
+    label: meta.title,
+    summary: meta.summary,
+    parent: meta.parent
+  }
+}));
+
+// Convert related into edges
+// Here, since related is empty, edges will be empty.
+const edges = [];
