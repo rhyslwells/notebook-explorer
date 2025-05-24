@@ -1,0 +1,34 @@
+# Future Features
+
+A categorized list of possible future features to enhance your Streamlit-based Jupyter notebook explorer with a mind map interface.
+
+## Navigation & Search Enhancements
+
+ Fuzzy search & autocomplete
+  Use `fuzzywuzzy`, `rapidfuzz`, or `streamlit-searchbox` for better UX.
+
+ Search by cell content
+  Index raw cells to enable deep search (e.g., function names, imports).
+
+ Search history or bookmarking
+  Let users bookmark frequently visited notebooks.
+
+
+## Graph Visualization Features
+
+ Interactive edge highlighting
+  Hover over a notebook to highlight its direct dependencies.
+
+ Cluster/group nodes
+  Group notebooks by tag, folder, or inferred topic in the Cytoscape layout.
+
+ Dynamic filtering on graph
+  Enable tag or text filters to live-update the graph.
+
+## Notebook Viewer Features
+
+ Inline rendering of notebook preview
+  Use `nbconvert` to render a static HTML preview inline.
+
+ Open in Colab or Binder
+  Add buttons to launch the notebook in Google Colab or Binder.
